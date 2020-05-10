@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"erdinc/tetris/model"
+	"erdinc/tetris/internal/model"
+	"fmt"
 )
 
 // Start will be starting point of controller
 func Start() {
 	piece := model.NewPiece()
-	piece.Print()
+	fmt.Printf("Piece: %+v\n", piece)
 }

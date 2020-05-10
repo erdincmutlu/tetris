@@ -8,6 +8,7 @@ import (
 
 func main() {
 	fmt.Println("Tetris started")
+
 	err := model.Init()
 	if err != nil {
 		panic(err)

@@ -1,7 +1,7 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/erdincmutlu/board v0.0.0-20200509163602-08a933fc4ad5 h1:DbOMAd0oUBoB2lTduc9fpwrLRb7hqgVotqIvHnSI4fM=
-github.com/erdincmutlu/board v0.0.0-20200509163602-08a933fc4ad5/go.mod h1:tFZHPgH2G7AJvjRKsMzXlNl9/wwDe74hU6VraxB1RYM=
+github.com/erdincmutlu/board v0.0.0-20200510100519-1957f176d181 h1:IsJbPKEDT7c+VMWaKQ1PurVjeC2Wcm+pe86YZsQdV7M=
+github.com/erdincmutlu/board v0.0.0-20200510100519-1957f176d181/go.mod h1:tFZHPgH2G7AJvjRKsMzXlNl9/wwDe74hU6VraxB1RYM=
 github.com/faiface/glhf v0.0.0-20181018222622-82a6317ac380 h1:FvZ0mIGh6b3kOITxUnxS3tLZMh7yEoHo75v3/AgUqg0=
 github.com/faiface/glhf v0.0.0-20181018222622-82a6317ac380/go.mod h1:zqnPFFIuYFFxl7uH2gYByJwIVKG7fRqlqQCbzAnHs9g=
 github.com/faiface/mainthread v0.0.0-20171120011319-8b78f0a41ae3 h1:baVdMKlASEHrj19iqjARrPbaRisD7EuZEVJj6ZMLl1Q=

@@ -7,6 +7,7 @@ import (
 	"image/color"
 	_ "image/png"
 	"os"
+	"time"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -31,6 +32,13 @@ func Start() {
 
 // For running the main window
 func run() {
+	initPixel()
+	initWindow()
+	startLoop()
+}
+
+// Initialize pixel, sprite, etc
+func initPixel() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Tetris",
 		Bounds: pixel.R(0, 0, windowWidth, windowHeight),
@@ -49,18 +57,25 @@ func run() {
 	}
 
 	sprite = pixel.NewSprite(tile, tile.Bounds())
+}
 
+// Will initialize the window, i.e for restarting the game
+func initWindow() {
 	win.Clear(backgroundColor)
 	border := imdraw.New(nil)
 	border.Color = colornames.Red
 	border.Push(pixel.V(50, windowHeight-70), pixel.V(50, windowHeight-550), pixel.V(293, windowHeight-550), pixel.V(293, windowHeight-70))
 	border.Line(3)
 	border.Draw(win)
+}
 
+// Will start the handling of events loop
+func startLoop() {
 	for !win.Closed() {
 		drawActivePiece()
 		// drawTest()
 		win.Update()
+		time.Sleep(time.Second)
 	}
 }
 

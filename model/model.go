@@ -29,7 +29,8 @@ type Piece struct {
 
 type shape [][]coordinate
 
-var initialLocation coordinate = coordinate{0, 3}
+// Tetris board 0,0 is bottom left corner
+var initialLocation coordinate = coordinate{19, 3}
 
 var shapeI shape = shape{{{0, 1}, {1, 1}, {2, 1}, {3, 1}}}
 var shapeReverseL shape = shape{{{0, 0}, {0, 1}, {1, 1}, {2, 1}}}

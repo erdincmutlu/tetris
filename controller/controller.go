@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"erdinc/tetris/internal/model"
+	"erdinc/tetris/model"
 	"fmt"
 )
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"erdinc/tetris/internal/controller"
-	"erdinc/tetris/internal/model"
-	"erdinc/tetris/internal/view"
+	"erdinc/tetris/controller"
+	"erdinc/tetris/model"
+	"erdinc/tetris/view"
 
 	"fmt"
 )

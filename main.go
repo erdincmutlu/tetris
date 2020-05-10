@@ -1,6 +1,7 @@
 package main
 
 import (
+	"erdinc/tetris/controller"
 	"erdinc/tetris/model"
 	"erdinc/tetris/view"
 	"fmt"
@@ -13,6 +14,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	controller.Start()
 
 	view.Start()
 }

@@ -2,8 +2,6 @@ package internal
 
 import (
 	"image/color"
-
-	"github.com/erdincmutlu/board"
 )
 
 // Coordinate is used to determine piece position
@@ -22,7 +20,8 @@ type Piece struct {
 	Color        color.RGBA
 }
 
-type gameBoard struct {
-	b *board.Board
-	p *Piece
+// BoardPiece represent a cell in the board grid, with color
+type BoardPiece struct {
+	Occupied bool
+	Color    color.RGBA
 }

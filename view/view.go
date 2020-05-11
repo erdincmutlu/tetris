@@ -72,10 +72,23 @@ func initWindow() {
 // Will start the handling of events loop
 func startLoop() {
 	for !win.Closed() {
+		initWindow()
 		drawActivePiece()
-		// drawTest()
 		win.Update()
 		time.Sleep(time.Second)
+		if model.CanDrop() {
+			model.Drop()
+		}
+
+		if win.Pressed(pixelgl.KeyLeft) {
+			if model.CanMoveLeft() {
+				model.MoveLeft()
+			}
+		} else if win.Pressed(pixelgl.KeyRight) {
+			if model.CanMoveRight() {
+				model.MoveRight()
+			}
+		}
 	}
 }
 
@@ -104,6 +117,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
+// Draw the active piece to the window
 func drawActivePiece() {
 	activeCoords := model.GetActivePieceCoords()
 	for _, coord := range activeCoords {

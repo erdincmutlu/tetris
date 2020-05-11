@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/erdincmutlu/board"
 	"golang.org/x/image/colornames"
 )
 
@@ -35,16 +34,24 @@ var allColors = []color.RGBA{colornames.Skyblue, colornames.Darkblue, colornames
 
 var activePiece internal.Piece
 
+var board [tetrisWidth][tetrisHeight]internal.BoardPiece
+
 // Init will initialize the model
 func Init() error {
 	fmt.Println("Model init")
 
 	rand.Seed(time.Now().Unix())
-	_, err := board.NewBoard(tetrisWidth, tetrisHeight)
-	if err != nil {
-		return err
-	}
+	initBoard()
 	return nil
+}
+
+// Initialize the booard, to start a new game
+func initBoard() {
+	for i := 0; i < tetrisWidth; i++ {
+		for j := 0; j < tetrisHeight; j++ {
+			board[i][j] = internal.BoardPiece{Occupied: false}
+		}
+	}
 }
 
 // NewActivePiece sets a new random Piece as active piece
@@ -84,4 +91,52 @@ func coordsOffsetBy(coords []internal.Coordinate, delta internal.Coordinate) []i
 // Add offset to the given coordinate
 func coordOffsetBy(coord internal.Coordinate, delta internal.Coordinate) internal.Coordinate {
 	return internal.Coordinate{coord.X + delta.X, coord.Y + delta.Y}
+}
+
+// CanDrop return true if the current active piece can be dropped by one
+func CanDrop() bool {
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{0, 1})
+	return isFit(newCoords)
+}
+
+// Returns true if all of newCoords in boundary and empty
+func isFit(newCoords []internal.Coordinate) bool {
+	for _, coord := range newCoords {
+		if coord.X < 0 || coord.X >= tetrisWidth || coord.Y < 0 || coord.Y >= tetrisHeight {
+			return false
+		}
+
+		if board[coord.X][coord.Y].Occupied {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Drop will drop the active piece by one
+func Drop() {
+	activePiece.CurrentCoord.Y++
+}
+
+// CanMoveLeft return true if the current active piece can be moved to tne left by one
+func CanMoveLeft() bool {
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{-1, 0})
+	return isFit(newCoords)
+}
+
+// MoveLeft will move the active piece to tne left by one
+func MoveLeft() {
+	activePiece.CurrentCoord.X--
+}
+
+// CanMoveRight return true if the current active piece can be moved to the right by one
+func CanMoveRight() bool {
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{1, 0})
+	return isFit(newCoords)
+}
+
+// MoveRight will move the active piece to the right by one
+func MoveRight() {
+	activePiece.CurrentCoord.X++
 }

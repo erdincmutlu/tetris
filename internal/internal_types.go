@@ -13,11 +13,12 @@ type Coordinate struct {
 // Shape holds all different rotated views of the piece
 type Shape [][]Coordinate
 
-// Piece is to be used on the board
-type Piece struct {
-	Shape        Shape
-	CurrentCoord Coordinate // Top left corner of the item
-	Color        color.RGBA
+// ActivePiece is to be used on the board
+type ActivePiece struct {
+	Shape              Shape
+	CurrentCoord       Coordinate // Top left corner of the item
+	CurrentOrientation int        // Orientation changes by rotating left or right
+	Color              color.RGBA
 }
 
 // BoardPiece represent a cell in the board grid, with color

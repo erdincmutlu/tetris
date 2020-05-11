@@ -19,20 +19,45 @@ const (
 // 0,0 ..... 9,0
 // .............
 // 0,19 ...  9,19
-var initialCoordinate internal.Coordinate = internal.Coordinate{3, 0}
+var initialCoordinate internal.Coordinate = internal.Coordinate{X: 3, Y: 0}
 
-var shapeI internal.Shape = internal.Shape{{{0, 1}, {1, 1}, {2, 1}, {3, 1}}}
-var shapeReverseL internal.Shape = internal.Shape{{{0, 0}, {0, 1}, {1, 1}, {2, 1}}}
-var shapeL internal.Shape = internal.Shape{{{0, 1}, {1, 1}, {2, 1}, {2, 0}}}
-var shapeSq internal.Shape = internal.Shape{{{1, 0}, {1, 1}, {2, 0}, {2, 1}}}
-var shapeS internal.Shape = internal.Shape{{{0, 1}, {1, 1}, {1, 0}, {2, 0}}}
-var shapeT internal.Shape = internal.Shape{{{0, 1}, {1, 1}, {1, 0}, {2, 1}}}
-var shapeZ internal.Shape = internal.Shape{{{0, 0}, {1, 0}, {1, 1}, {2, 1}}}
+var shapeI internal.Shape = internal.Shape{
+	{{0, 1}, {1, 1}, {2, 1}, {3, 1}},
+	{{1, 0}, {1, 1}, {1, 2}, {1, 3}}}
+
+var shapeReverseL internal.Shape = internal.Shape{
+	{{0, 0}, {0, 1}, {1, 1}, {2, 1}},
+	{{0, 0}, {1, 0}, {0, 1}, {0, 2}},
+	{{0, 0}, {1, 0}, {2, 0}, {2, 1}},
+	{{1, 0}, {1, 1}, {1, 2}, {0, 2}}}
+
+var shapeL internal.Shape = internal.Shape{
+	{{0, 1}, {1, 1}, {2, 1}, {2, 0}},
+	{{0, 0}, {0, 1}, {0, 2}, {1, 2}},
+	{{0, 0}, {1, 0}, {2, 0}, {0, 1}},
+	{{0, 0}, {1, 0}, {1, 1}, {1, 2}}}
+
+var shapeSq internal.Shape = internal.Shape{
+	{{1, 0}, {1, 1}, {2, 0}, {2, 1}}}
+
+var shapeS internal.Shape = internal.Shape{
+	{{0, 1}, {1, 1}, {1, 0}, {2, 0}},
+	{{0, 0}, {0, 1}, {1, 1}, {1, 2}}}
+
+var shapeT internal.Shape = internal.Shape{
+	{{0, 1}, {1, 1}, {1, 0}, {2, 1}},
+	{{0, 0}, {0, 1}, {0, 2}, {1, 1}},
+	{{0, 0}, {1, 0}, {2, 0}, {1, 1}},
+	{{0, 1}, {1, 0}, {1, 1}, {1, 2}}}
+
+var shapeZ internal.Shape = internal.Shape{
+	{{0, 0}, {1, 0}, {1, 1}, {2, 1}},
+	{{1, 0}, {1, 1}, {0, 1}, {0, 2}}}
 
 var allShapes = []internal.Shape{shapeI, shapeReverseL, shapeL, shapeSq, shapeS, shapeT, shapeZ}
 var allColors = []color.RGBA{colornames.Skyblue, colornames.Darkblue, colornames.Orange, colornames.Yellow, colornames.Green, colornames.Purple, colornames.Red}
 
-var activePiece internal.Piece
+var activePiece internal.ActivePiece
 
 var board [tetrisWidth][tetrisHeight]internal.BoardPiece
 
@@ -57,7 +82,7 @@ func initBoard() {
 // NewActivePiece sets a new random Piece as active piece
 func NewActivePiece() {
 	r := rand.Intn(len(allShapes))
-	activePiece = internal.Piece{
+	activePiece = internal.ActivePiece{
 		Shape:        allShapes[r],
 		CurrentCoord: initialCoordinate,
 		Color:        allColors[r],
@@ -71,12 +96,27 @@ func PrintActivePiece() {
 
 // GetActivePieceCoords will return slice of coordinates of the active piece
 func GetActivePieceCoords() []internal.Coordinate {
-	return coordsOffsetBy(currentActivePieceCoordinates(), activePiece.CurrentCoord)
+	return coordsOffsetBy(activePieceCoords(), activePiece.CurrentCoord)
 }
 
-// get the current shape of the piece, i.e. shape changes as it rotates
-func currentActivePieceCoordinates() []internal.Coordinate {
-	return activePiece.Shape[0]
+// get the current shape, i.e. slice of the coordinates, of the piece. Shape changes as it rotates
+func activePieceCoords() []internal.Coordinate {
+	return activePiece.Shape[activePiece.CurrentOrientation]
+}
+
+// Returns slice of coordinates of the active piece rotated. For simulation
+func getRotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
+	return coordsOffsetBy(rotatedActivePieceCoords(rotateBy), activePiece.CurrentCoord)
+}
+
+// get the rotated shape, i.e. slice of the coordinates, of the piece. Shape changes as it rotates. For simulation
+func rotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
+	return activePiece.Shape[(activePiece.CurrentOrientation+rotateBy)%len(activePiece.Shape)]
+}
+
+// RotateActivePiece rotates the active piece. -1 is left, 1 is right
+func RotateActivePiece(rotateBy int) {
+	activePiece.CurrentOrientation = (activePiece.CurrentOrientation + rotateBy) % len(activePiece.Shape)
 }
 
 // Add offset to the given slice of coordinates, to each element in the slice
@@ -90,16 +130,16 @@ func coordsOffsetBy(coords []internal.Coordinate, delta internal.Coordinate) []i
 
 // Add offset to the given coordinate
 func coordOffsetBy(coord internal.Coordinate, delta internal.Coordinate) internal.Coordinate {
-	return internal.Coordinate{coord.X + delta.X, coord.Y + delta.Y}
+	return internal.Coordinate{X: coord.X + delta.X, Y: coord.Y + delta.Y}
 }
 
 // CanDrop return true if the current active piece can be dropped by one
 func CanDrop() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{0, 1})
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: 0, Y: 1})
 	return isFit(newCoords)
 }
 
-// Returns true if all of newCoords in boundary and empty
+// Returns true if all of newCoords are in boundary and empty
 func isFit(newCoords []internal.Coordinate) bool {
 	for _, coord := range newCoords {
 		if coord.X < 0 || coord.X >= tetrisWidth || coord.Y < 0 || coord.Y >= tetrisHeight {
@@ -121,7 +161,7 @@ func Drop() {
 
 // CanMoveLeft return true if the current active piece can be moved to tne left by one
 func CanMoveLeft() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{-1, 0})
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: -1, Y: 0})
 	return isFit(newCoords)
 }
 
@@ -132,13 +172,35 @@ func MoveLeft() {
 
 // CanMoveRight return true if the current active piece can be moved to the right by one
 func CanMoveRight() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{1, 0})
+	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: 1, Y: 0})
 	return isFit(newCoords)
 }
 
 // MoveRight will move the active piece to the right by one
 func MoveRight() {
 	activePiece.CurrentCoord.X++
+}
+
+// CanRotateLeft return true if the current active piece can be rotated left by one
+func CanRotateLeft() bool {
+	newCoords := getRotatedActivePieceCoords(-1)
+	return isFit(newCoords)
+}
+
+// RotateLeft will rotate the active piece to tne left by one
+func RotateLeft() {
+	RotateActivePiece(-1)
+}
+
+// CanRotateRight return true if the current active piece can be rotated right by one
+func CanRotateRight() bool {
+	newCoords := getRotatedActivePieceCoords(1)
+	return isFit(newCoords)
+}
+
+// RotateRight will rotate the active piece to tne right by one
+func RotateRight() {
+	RotateActivePiece(1)
 }
 
 // AddActivePieceToBoard adds the active piece to the board
@@ -156,7 +218,7 @@ func GetBoardPieces() []internal.Coordinate {
 	for i := 0; i < tetrisWidth; i++ {
 		for j := 0; j < tetrisHeight; j++ {
 			if board[i][j].Occupied {
-				pieces = append(pieces, internal.Coordinate{i, j})
+				pieces = append(pieces, internal.Coordinate{X: i, Y: j})
 			}
 		}
 	}

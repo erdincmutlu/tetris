@@ -84,6 +84,14 @@ func startLoop() {
 			if model.CanMoveRight() {
 				model.MoveRight()
 			}
+		} else if win.Pressed(pixelgl.KeyZ) {
+			if model.CanRotateLeft() {
+				model.RotateLeft()
+			}
+		} else if win.Pressed(pixelgl.KeyX) {
+			if model.CanRotateRight() {
+				model.RotateRight()
+			}
 		}
 
 		time.Sleep(time.Second)
@@ -99,13 +107,13 @@ func startLoop() {
 }
 
 func drawPiece(coord internal.Coordinate) {
-	sprite.Draw(win, pixel.IM.Moved(pixel.Vec{float64(coord.X*24 + 62), float64((19-coord.Y)*24 + 62)}))
+	sprite.Draw(win, pixel.IM.Moved(pixel.Vec{X: float64(coord.X*24 + 62), Y: float64((19-coord.Y)*24 + 62)}))
 }
 
 func drawTest() {
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 20; j++ {
-			drawPiece(internal.Coordinate{i, j})
+			drawPiece(internal.Coordinate{X: i, Y: j})
 		}
 	}
 }

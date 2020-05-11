@@ -140,3 +140,26 @@ func CanMoveRight() bool {
 func MoveRight() {
 	activePiece.CurrentCoord.X++
 }
+
+// AddActivePieceToBoard adds the active piece to the board
+func AddActivePieceToBoard() {
+	coords := GetActivePieceCoords()
+	for _, coord := range coords {
+		board[coord.X][coord.Y].Occupied = true
+		board[coord.X][coord.Y].Color = activePiece.Color
+	}
+}
+
+// GetBoardPieces returns the slice of all pieces on the board
+func GetBoardPieces() []internal.Coordinate {
+	var pieces []internal.Coordinate
+	for i := 0; i < tetrisWidth; i++ {
+		for j := 0; j < tetrisHeight; j++ {
+			if board[i][j].Occupied {
+				pieces = append(pieces, internal.Coordinate{i, j})
+			}
+		}
+	}
+
+	return pieces
+}

@@ -74,11 +74,7 @@ func startLoop() {
 	for !win.Closed() {
 		initWindow()
 		drawActivePiece()
-		win.Update()
-		time.Sleep(time.Second)
-		if model.CanDrop() {
-			model.Drop()
-		}
+		drawBoard()
 
 		if win.Pressed(pixelgl.KeyLeft) {
 			if model.CanMoveLeft() {
@@ -89,6 +85,16 @@ func startLoop() {
 				model.MoveRight()
 			}
 		}
+
+		time.Sleep(time.Second)
+		if model.CanDrop() {
+			model.Drop()
+		} else {
+			model.AddActivePieceToBoard()
+			model.NewActivePiece()
+		}
+
+		win.Update()
 	}
 }
 
@@ -121,6 +127,14 @@ func loadPicture(path string) (pixel.Picture, error) {
 func drawActivePiece() {
 	activeCoords := model.GetActivePieceCoords()
 	for _, coord := range activeCoords {
+		drawPiece(coord)
+	}
+}
+
+// Draw the board, i.e. non active pieces on the board
+func drawBoard() {
+	pieces := model.GetBoardPieces()
+	for _, coord := range pieces {
 		drawPiece(coord)
 	}
 }

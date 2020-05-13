@@ -111,12 +111,12 @@ func getRotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
 
 // get the rotated shape, i.e. slice of the coordinates, of the piece. Shape changes as it rotates. For simulation
 func rotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
-	return activePiece.Shape[(activePiece.CurrentOrientation+rotateBy)%len(activePiece.Shape)]
+	return activePiece.Shape[(activePiece.CurrentOrientation+rotateBy+len(activePiece.Shape))%len(activePiece.Shape)]
 }
 
 // RotateActivePiece rotates the active piece. -1 is left, 1 is right
 func RotateActivePiece(rotateBy int) {
-	activePiece.CurrentOrientation = (activePiece.CurrentOrientation + rotateBy) % len(activePiece.Shape)
+	activePiece.CurrentOrientation = (activePiece.CurrentOrientation + rotateBy + len(activePiece.Shape)) % len(activePiece.Shape)
 }
 
 // Add offset to the given slice of coordinates, to each element in the slice

@@ -71,7 +71,9 @@ func initWindow() {
 
 // Will start the handling of events loop
 func startLoop() {
+	last := time.Now()
 	for !win.Closed() {
+		dtMilliS := time.Since(last).Milliseconds()
 		initWindow()
 		drawActivePiece()
 		drawBoard()
@@ -94,12 +96,15 @@ func startLoop() {
 			}
 		}
 
-		time.Sleep(time.Second)
-		if model.CanDrop() {
-			model.Drop()
-		} else {
-			model.AddActivePieceToBoard()
-			model.NewActivePiece()
+		// time.Sleep(time.Second)
+		if dtMilliS > 1000 { // Every second, drop the active piece
+			if model.CanDrop() {
+				model.Drop()
+			} else {
+				model.AddActivePieceToBoard()
+				model.NewActivePiece()
+			}
+			last = time.Now()
 		}
 
 		win.Update()

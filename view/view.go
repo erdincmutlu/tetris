@@ -3,6 +3,7 @@ package view
 import (
 	"erdinc/tetris/internal"
 	"erdinc/tetris/model"
+	"fmt"
 	"image"
 	"image/color"
 	_ "image/png"
@@ -12,7 +13,9 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
+	"golang.org/x/image/font/basicfont"
 )
 
 const (
@@ -24,6 +27,7 @@ var backgroundColor color.RGBA = colornames.Darkblue
 
 var sprite *pixel.Sprite
 var win *pixelgl.Window
+var basicTxt *text.Text
 
 // Start will be starting point of view
 func Start() {
@@ -57,6 +61,12 @@ func initPixel() {
 	}
 
 	sprite = pixel.NewSprite(tile, tile.Bounds())
+
+	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	basicTxt = text.New(pixel.V(330, 500), basicAtlas)
+
+	basicTxt.Color = colornames.Red
+	fmt.Fprintln(basicTxt, "Next")
 }
 
 // Will initialize the window, i.e for restarting the game
@@ -75,7 +85,9 @@ func startLoop() {
 	for !win.Closed() {
 		dtMilliS := time.Since(last).Milliseconds()
 		initWindow()
+		basicTxt.Draw(win, pixel.IM.Scaled(basicTxt.Orig, 3.5))
 		drawActivePiece()
+		drawNextPiece()
 		drawBoard()
 
 		if win.JustPressed(pixelgl.KeyLeft) {
@@ -96,7 +108,6 @@ func startLoop() {
 			}
 		}
 
-		// time.Sleep(time.Second)
 		if dtMilliS > 1000 { // Every second, drop the active piece
 			if model.CanDrop() {
 				model.Drop()
@@ -138,8 +149,16 @@ func loadPicture(path string) (pixel.Picture, error) {
 
 // Draw the active piece to the window
 func drawActivePiece() {
-	activeCoords := model.GetActivePieceCoords()
-	for _, coord := range activeCoords {
+	pieces := model.GetActivePieceCoords()
+	drawCoords(pieces)
+}
+
+// Draw the next piece to the window
+func drawNextPiece() {
+	pieces := model.GetNextPieceCoords()
+	for _, coord := range pieces {
+		coord.X += 12
+		coord.Y += 2
 		drawPiece(coord)
 	}
 }
@@ -147,6 +166,10 @@ func drawActivePiece() {
 // Draw the board, i.e. non active pieces on the board
 func drawBoard() {
 	pieces := model.GetBoardPieces()
+	drawCoords(pieces)
+}
+
+func drawCoords(pieces []internal.Coordinate) {
 	for _, coord := range pieces {
 		drawPiece(coord)
 	}

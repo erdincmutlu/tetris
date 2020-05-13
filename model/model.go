@@ -57,7 +57,7 @@ var shapeZ internal.Shape = internal.Shape{
 var allShapes = []internal.Shape{shapeI, shapeReverseL, shapeL, shapeSq, shapeS, shapeT, shapeZ}
 var allColors = []color.RGBA{colornames.Skyblue, colornames.Darkblue, colornames.Orange, colornames.Yellow, colornames.Green, colornames.Purple, colornames.Red}
 
-var activePiece internal.ActivePiece
+var activePiece, nextPiece *internal.ActivePiece
 
 var board [tetrisWidth][tetrisHeight]internal.BoardPiece
 
@@ -67,6 +67,7 @@ func Init() error {
 
 	rand.Seed(time.Now().Unix())
 	initBoard()
+
 	return nil
 }
 
@@ -79,10 +80,19 @@ func initBoard() {
 	}
 }
 
-// NewActivePiece sets a new random Piece as active piece
+// NewActivePiece sets the next piece as new active piece and assign a random next piece
 func NewActivePiece() {
 	r := rand.Intn(len(allShapes))
-	activePiece = internal.ActivePiece{
+	if nextPiece == nil {
+		nextPiece = constructPiece(r)
+		r = rand.Intn(len(allShapes))
+	}
+	activePiece = nextPiece
+	nextPiece = constructPiece(r)
+}
+
+func constructPiece(r int) *internal.ActivePiece {
+	return &internal.ActivePiece{
 		Shape:        allShapes[r],
 		CurrentCoord: initialCoordinate,
 		Color:        allColors[r],
@@ -92,6 +102,11 @@ func NewActivePiece() {
 // PrintActivePiece prints the active piece information, for debugging only
 func PrintActivePiece() {
 	fmt.Printf("Active Piece:%+v\n", activePiece)
+}
+
+// GetNextPieceCoords will return slice of coordinates of the next piece
+func GetNextPieceCoords() []internal.Coordinate {
+	return nextPiece.Shape[0]
 }
 
 // GetActivePieceCoords will return slice of coordinates of the active piece

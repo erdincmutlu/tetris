@@ -78,19 +78,19 @@ func startLoop() {
 		drawActivePiece()
 		drawBoard()
 
-		if win.Pressed(pixelgl.KeyLeft) {
+		if win.JustPressed(pixelgl.KeyLeft) {
 			if model.CanMoveLeft() {
 				model.MoveLeft()
 			}
-		} else if win.Pressed(pixelgl.KeyRight) {
+		} else if win.JustPressed(pixelgl.KeyRight) {
 			if model.CanMoveRight() {
 				model.MoveRight()
 			}
-		} else if win.Pressed(pixelgl.KeyZ) {
+		} else if win.JustPressed(pixelgl.KeyZ) {
 			if model.CanRotateLeft() {
 				model.RotateLeft()
 			}
-		} else if win.Pressed(pixelgl.KeyX) {
+		} else if win.JustPressed(pixelgl.KeyX) {
 			if model.CanRotateRight() {
 				model.RotateRight()
 			}

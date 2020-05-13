@@ -21,20 +21,24 @@ const (
 // 0,19 ...  9,19
 var initialCoordinate internal.Coordinate = internal.Coordinate{X: 3, Y: 0}
 
+// Rotation of the shapes are in defined in Super rotation system
+// https://strategywiki.org/wiki/File:Tetris_rotation_super.png
 var shapeI internal.Shape = internal.Shape{
 	{{0, 1}, {1, 1}, {2, 1}, {3, 1}},
+	{{2, 0}, {2, 1}, {2, 2}, {2, 3}},
+	{{0, 2}, {1, 2}, {2, 2}, {3, 2}},
 	{{1, 0}, {1, 1}, {1, 2}, {1, 3}}}
 
 var shapeReverseL internal.Shape = internal.Shape{
 	{{0, 0}, {0, 1}, {1, 1}, {2, 1}},
-	{{0, 0}, {1, 0}, {0, 1}, {0, 2}},
-	{{0, 0}, {1, 0}, {2, 0}, {2, 1}},
+	{{1, 0}, {2, 0}, {1, 1}, {1, 2}},
+	{{0, 1}, {1, 1}, {2, 1}, {2, 2}},
 	{{1, 0}, {1, 1}, {1, 2}, {0, 2}}}
 
 var shapeL internal.Shape = internal.Shape{
 	{{0, 1}, {1, 1}, {2, 1}, {2, 0}},
-	{{0, 0}, {0, 1}, {0, 2}, {1, 2}},
-	{{0, 0}, {1, 0}, {2, 0}, {0, 1}},
+	{{1, 0}, {1, 1}, {1, 2}, {2, 2}},
+	{{0, 1}, {1, 1}, {2, 1}, {0, 2}},
 	{{0, 0}, {1, 0}, {1, 1}, {1, 2}}}
 
 var shapeSq internal.Shape = internal.Shape{
@@ -42,16 +46,20 @@ var shapeSq internal.Shape = internal.Shape{
 
 var shapeS internal.Shape = internal.Shape{
 	{{0, 1}, {1, 1}, {1, 0}, {2, 0}},
+	{{1, 0}, {1, 1}, {2, 1}, {2, 2}},
+	{{0, 2}, {1, 2}, {1, 1}, {2, 1}},
 	{{0, 0}, {0, 1}, {1, 1}, {1, 2}}}
 
 var shapeT internal.Shape = internal.Shape{
 	{{0, 1}, {1, 1}, {1, 0}, {2, 1}},
-	{{0, 0}, {0, 1}, {0, 2}, {1, 1}},
-	{{0, 0}, {1, 0}, {2, 0}, {1, 1}},
+	{{1, 0}, {1, 1}, {1, 2}, {2, 1}},
+	{{0, 1}, {1, 1}, {2, 1}, {1, 2}},
 	{{0, 1}, {1, 0}, {1, 1}, {1, 2}}}
 
 var shapeZ internal.Shape = internal.Shape{
 	{{0, 0}, {1, 0}, {1, 1}, {2, 1}},
+	{{2, 0}, {2, 1}, {1, 1}, {1, 2}},
+	{{0, 1}, {1, 1}, {1, 2}, {2, 2}},
 	{{1, 0}, {1, 1}, {0, 1}, {0, 2}}}
 
 var allShapes = []internal.Shape{shapeI, shapeReverseL, shapeL, shapeSq, shapeS, shapeT, shapeZ}

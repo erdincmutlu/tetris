@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	windowWidth  = 500
+	windowWidth  = 550
 	windowHeight = 600
 )
 
@@ -27,7 +27,10 @@ var backgroundColor color.RGBA = colornames.Darkblue
 
 var sprite *pixel.Sprite
 var win *pixelgl.Window
-var basicTxt *text.Text
+var nextTxt *text.Text
+var scoreTxt *text.Text
+
+var score int
 
 // Start will be starting point of view
 func Start() {
@@ -63,10 +66,12 @@ func initPixel() {
 	sprite = pixel.NewSprite(tile, tile.Bounds())
 
 	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
-	basicTxt = text.New(pixel.V(330, 500), basicAtlas)
+	nextTxt = text.New(pixel.V(330, 500), basicAtlas)
+	nextTxt.Color = colornames.Red
+	fmt.Fprintln(nextTxt, "Next")
 
-	basicTxt.Color = colornames.Red
-	fmt.Fprintln(basicTxt, "Next")
+	scoreTxt = text.New(pixel.V(330, 200), basicAtlas)
+	scoreTxt.Color = colornames.Red
 }
 
 // Will initialize the window, i.e for restarting the game
@@ -85,9 +90,10 @@ func startLoop() {
 	for !win.Closed() {
 		dtMilliS := time.Since(last).Milliseconds()
 		initWindow()
-		basicTxt.Draw(win, pixel.IM.Scaled(basicTxt.Orig, 3.5))
+		nextTxt.Draw(win, pixel.IM.Scaled(nextTxt.Orig, 3.5))
 		drawActivePiece()
 		drawNextPiece()
+		drawScore()
 		drawBoard()
 
 		if win.JustPressed(pixelgl.KeyLeft) {
@@ -115,6 +121,8 @@ func startLoop() {
 				model.AddActivePieceToBoard()
 				model.NewActivePiece()
 			}
+
+			score++
 			last = time.Now()
 		}
 
@@ -173,4 +181,11 @@ func drawCoords(pieces []internal.Coordinate) {
 	for _, coord := range pieces {
 		drawPiece(coord)
 	}
+}
+
+func drawScore() {
+	scoreTxt.Clear()
+	s := fmt.Sprintf("Score: %d", score)
+	fmt.Fprintln(scoreTxt, s)
+	scoreTxt.Draw(win, pixel.IM.Scaled(scoreTxt.Orig, 3))
 }

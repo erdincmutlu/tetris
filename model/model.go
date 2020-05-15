@@ -74,13 +74,13 @@ func Init() error {
 	fmt.Println("Model init")
 
 	rand.Seed(time.Now().Unix())
-	initBoard()
+	ClearBoard()
 
 	return nil
 }
 
-// Initialize the booard, to start a new game
-func initBoard() {
+// ClearBoard clears the board for new game
+func ClearBoard() {
 	for i := 0; i < tetrisWidth; i++ {
 		for j := 0; j < tetrisHeight; j++ {
 			board[i][j] = internal.BoardPiece{Occupied: false}
@@ -89,7 +89,8 @@ func initBoard() {
 }
 
 // NewActivePiece sets the next piece as new active piece and assign a random next piece
-func NewActivePiece() {
+// return false if cannot place the active piece, i.e. game over
+func NewActivePiece() bool {
 	r := rand.Intn(len(allShapes))
 	if nextPiece == nil {
 		nextPiece = constructPiece(r)
@@ -97,6 +98,11 @@ func NewActivePiece() {
 	}
 	activePiece = nextPiece
 	nextPiece = constructPiece(r)
+
+	if !isFit(GetActivePieceCoords()) {
+		return false
+	}
+	return true
 }
 
 func constructPiece(r int) *internal.ActivePiece {

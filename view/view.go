@@ -26,11 +26,16 @@ const (
 var backgroundColor color.RGBA = colornames.Darkblue
 
 var sprite *pixel.Sprite
+var border *imdraw.IMDraw
+var gameOverBox *imdraw.IMDraw
 var win *pixelgl.Window
 var nextTxt *text.Text
 var scoreTxt *text.Text
+var gameOverTxt *text.Text
 
 var score int
+
+var gameOvered bool
 
 // Start will be starting point of view
 func Start() {
@@ -65,6 +70,11 @@ func initPixel() {
 
 	sprite = pixel.NewSprite(tile, tile.Bounds())
 
+	border = imdraw.New(nil)
+	border.Color = colornames.Red
+	border.Push(pixel.V(50, windowHeight-70), pixel.V(50, windowHeight-550), pixel.V(293, windowHeight-550), pixel.V(293, windowHeight-70))
+	border.Line(3)
+
 	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
 	nextTxt = text.New(pixel.V(330, 500), basicAtlas)
 	nextTxt.Color = colornames.Red
@@ -72,15 +82,24 @@ func initPixel() {
 
 	scoreTxt = text.New(pixel.V(330, 200), basicAtlas)
 	scoreTxt.Color = colornames.Red
+
+	gameOverBox = imdraw.New(nil)
+	gameOverBox.Color = colornames.Beige
+	gameOverBox.Push(pixel.V(100, 500))
+	gameOverBox.Push(pixel.V(100, 200))
+	gameOverBox.Push(pixel.V(400, 200))
+	gameOverBox.Push(pixel.V(400, 500))
+	gameOverBox.Polygon(0)
+
+	gameOverTxt = text.New(pixel.V(100, 400), basicAtlas)
+	gameOverTxt.Color = colornames.Red
+	fmt.Fprintln(gameOverTxt, "Game over\nPress enter to restart")
+
 }
 
 // Will initialize the window, i.e for restarting the game
 func initWindow() {
 	win.Clear(backgroundColor)
-	border := imdraw.New(nil)
-	border.Color = colornames.Red
-	border.Push(pixel.V(50, windowHeight-70), pixel.V(50, windowHeight-550), pixel.V(293, windowHeight-550), pixel.V(293, windowHeight-70))
-	border.Line(3)
 	border.Draw(win)
 }
 
@@ -89,43 +108,55 @@ func startLoop() {
 	last := time.Now()
 	for !win.Closed() {
 		dtMilliS := time.Since(last).Milliseconds()
-		initWindow()
-		nextTxt.Draw(win, pixel.IM.Scaled(nextTxt.Orig, 3.5))
-		drawActivePiece()
-		drawNextPiece()
-		drawScore()
-		drawBoard()
-
-		if win.JustPressed(pixelgl.KeyLeft) {
-			if model.CanMoveLeft() {
-				model.MoveLeft()
-			}
-		} else if win.JustPressed(pixelgl.KeyRight) {
-			if model.CanMoveRight() {
-				model.MoveRight()
-			}
-		} else if win.JustPressed(pixelgl.KeyZ) {
-			if model.CanRotateLeft() {
-				model.RotateLeft()
-			}
-		} else if win.JustPressed(pixelgl.KeyX) {
-			if model.CanRotateRight() {
-				model.RotateRight()
-			}
-		}
-
-		if dtMilliS > 1000 { // Every second, drop the active piece
-			if model.CanDrop() {
-				model.Drop()
-			} else {
-				model.AddActivePieceToBoard()
+		if gameOvered {
+			if win.JustPressed(pixelgl.KeyEnter) {
+				gameOvered = false
+				score = 0
 				model.NewActivePiece()
 			}
+		} else {
+			initWindow()
+			nextTxt.Draw(win, pixel.IM.Scaled(nextTxt.Orig, 3.5))
+			drawActivePiece()
+			drawNextPiece()
+			drawScore()
+			drawBoard()
 
-			score++
-			last = time.Now()
+			if win.JustPressed(pixelgl.KeyLeft) {
+				if model.CanMoveLeft() {
+					model.MoveLeft()
+				}
+			} else if win.JustPressed(pixelgl.KeyRight) {
+				if model.CanMoveRight() {
+					model.MoveRight()
+				}
+			} else if win.JustPressed(pixelgl.KeyZ) {
+				if model.CanRotateLeft() {
+					model.RotateLeft()
+				}
+			} else if win.JustPressed(pixelgl.KeyX) {
+				if model.CanRotateRight() {
+					model.RotateRight()
+				}
+			}
+
+			if dtMilliS > 100 { // Every second, drop the active piece
+				if model.CanDrop() {
+					model.Drop()
+				} else {
+					model.AddActivePieceToBoard()
+					placed := model.NewActivePiece()
+					if !(placed) {
+						gameOvered = true
+						gameOver()
+						model.ClearBoard()
+					}
+				}
+
+				score++
+				last = time.Now()
+			}
 		}
-
 		win.Update()
 	}
 }
@@ -183,9 +214,16 @@ func drawCoords(pieces []internal.Coordinate) {
 	}
 }
 
+// Draws score to the board
 func drawScore() {
 	scoreTxt.Clear()
 	s := fmt.Sprintf("Score: %d", score)
 	fmt.Fprintln(scoreTxt, s)
 	scoreTxt.Draw(win, pixel.IM.Scaled(scoreTxt.Orig, 3))
+}
+
+// // Game is over. Draw game over message
+func gameOver() {
+	gameOverBox.Draw(win)
+	gameOverTxt.Draw(win, pixel.IM.Moved(win.Bounds().Center().Sub(gameOverTxt.Bounds().Center())))
 }

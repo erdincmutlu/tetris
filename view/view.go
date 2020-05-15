@@ -35,7 +35,7 @@ var gameOverTxt *text.Text
 
 var score int
 
-var gameOvered bool
+var gameOver bool
 
 // Start will be starting point of view
 func Start() {
@@ -108,9 +108,9 @@ func startLoop() {
 	last := time.Now()
 	for !win.Closed() {
 		dtMilliS := time.Since(last).Milliseconds()
-		if gameOvered {
+		if gameOver {
 			if win.JustPressed(pixelgl.KeyEnter) {
-				gameOvered = false
+				gameOver = false
 				score = 0
 				model.NewActivePiece()
 			}
@@ -140,15 +140,21 @@ func startLoop() {
 				}
 			}
 
-			if dtMilliS > 100 { // Every second, drop the active piece
+			if dtMilliS > 1000 { // Every second, drop the active piece
 				if model.CanDrop() {
 					model.Drop()
 				} else {
 					model.AddActivePieceToBoard()
+
+					completedRows := model.GetCompletedRows()
+					for _, row := range completedRows {
+						model.DeleteRow(row)
+					}
+
 					placed := model.NewActivePiece()
 					if !(placed) {
-						gameOvered = true
-						gameOver()
+						gameOver = true
+						drawGameOver()
 						model.ClearBoard()
 					}
 				}
@@ -222,8 +228,8 @@ func drawScore() {
 	scoreTxt.Draw(win, pixel.IM.Scaled(scoreTxt.Orig, 3))
 }
 
-// // Game is over. Draw game over message
-func gameOver() {
+// Draw game over message
+func drawGameOver() {
 	gameOverBox.Draw(win)
 	gameOverTxt.Draw(win, pixel.IM.Moved(win.Bounds().Center().Sub(gameOverTxt.Bounds().Center())))
 }

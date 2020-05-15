@@ -67,7 +67,7 @@ var allColors = []color.RGBA{colornames.Skyblue, colornames.Darkblue, colornames
 
 var activePiece, nextPiece *internal.ActivePiece
 
-var board [tetrisWidth][tetrisHeight]internal.BoardPiece
+var board [tetrisHeight][tetrisWidth]internal.BoardPiece
 
 // Init will initialize the model
 func Init() error {
@@ -75,17 +75,35 @@ func Init() error {
 
 	rand.Seed(time.Now().Unix())
 	ClearBoard()
+	// RandomBoard()
 
 	return nil
 }
 
 // ClearBoard clears the board for new game
 func ClearBoard() {
-	for i := 0; i < tetrisWidth; i++ {
-		for j := 0; j < tetrisHeight; j++ {
-			board[i][j] = internal.BoardPiece{Occupied: false}
+	for row := 0; row < tetrisHeight; row++ {
+		for col := 0; col < tetrisWidth; col++ {
+			board[row][col] = internal.BoardPiece{Occupied: false}
 		}
 	}
+}
+
+// RandomBoard creates pseudorandomly filled board for testing
+func RandomBoard() {
+	for row := 10; row < 12; row++ {
+		for col := 0; col < tetrisWidth-1; col++ {
+			board[row][col] = internal.BoardPiece{Occupied: true}
+		}
+	}
+
+	for row := 12; row < tetrisHeight; row++ {
+		for col := 0; col < tetrisWidth; col++ {
+			board[row][col] = internal.BoardPiece{Occupied: rand.Intn(2) != 0}
+		}
+	}
+
+	board[12][9] = internal.BoardPiece{Occupied: true}
 }
 
 // NewActivePiece sets the next piece as new active piece and assign a random next piece
@@ -175,7 +193,7 @@ func isFit(newCoords []internal.Coordinate) bool {
 			return false
 		}
 
-		if board[coord.X][coord.Y].Occupied {
+		if board[coord.Y][coord.X].Occupied {
 			return false
 		}
 	}
@@ -236,21 +254,76 @@ func RotateRight() {
 func AddActivePieceToBoard() {
 	coords := GetActivePieceCoords()
 	for _, coord := range coords {
-		board[coord.X][coord.Y].Occupied = true
-		board[coord.X][coord.Y].Color = activePiece.Color
+		board[coord.Y][coord.X].Occupied = true
+		board[coord.Y][coord.X].Color = activePiece.Color
 	}
 }
 
 // GetBoardPieces returns the slice of all pieces on the board
 func GetBoardPieces() []internal.Coordinate {
 	var pieces []internal.Coordinate
-	for i := 0; i < tetrisWidth; i++ {
-		for j := 0; j < tetrisHeight; j++ {
-			if board[i][j].Occupied {
-				pieces = append(pieces, internal.Coordinate{X: i, Y: j})
+	for row := 0; row < tetrisHeight; row++ {
+		for col := 0; col < tetrisWidth; col++ {
+			if board[row][col].Occupied {
+				pieces = append(pieces, internal.Coordinate{X: col, Y: row})
 			}
 		}
 	}
 
 	return pieces
+}
+
+// GetCompletedRows returns a slice rows ordered from highest row to lowest
+func GetCompletedRows() []int {
+	var completed []int
+
+	// Only check active piece
+	coords := GetActivePieceCoords()
+	for _, coord := range coords {
+		if isRowFull(coord.Y) {
+			completed = addToSorted(completed, coord.Y)
+		}
+	}
+
+	return completed
+}
+
+// Adds the given integer to the ordered list if item is not in already
+// From lowest to highest
+func addToSorted(list []int, item int) []int {
+	for i := 0; i < len(list); i++ {
+		if item == list[i] {
+			return list
+		} else if item < list[i] {
+			newList := append(list[0:i], item)
+			return append(newList, list[i:]...)
+		}
+	}
+
+	return append(list, item)
+}
+
+// Checks if a given row is full and missing only the activeCol
+func isRowFull(row int) bool {
+	for col := 0; col < tetrisWidth; col++ {
+		if !board[row][col].Occupied {
+			return false
+		}
+	}
+
+	return true
+}
+
+// DeleteRow deletes the given row from the board and drops pieces above it by one
+func DeleteRow(row int) {
+	if row < 0 || row >= tetrisHeight {
+		return
+	}
+
+	for i := row; i > 0; i-- {
+		board[i] = board[i-1]
+	}
+	for col := 0; col < tetrisWidth; col++ {
+		board[0][col] = internal.BoardPiece{Occupied: false}
+	}
 }

@@ -23,9 +23,9 @@ const (
 	windowHeight = 600
 )
 
-var backgroundColor color.RGBA = colornames.Darkblue
+var backgroundColor color.RGBA = colornames.Black
 
-var sprite *pixel.Sprite
+var sprites [internal.TileColorSentinel]*pixel.Sprite
 var border *imdraw.IMDraw
 var gameOverBox *imdraw.IMDraw
 var win *pixelgl.Window
@@ -34,7 +34,6 @@ var scoreTxt *text.Text
 var gameOverTxt *text.Text
 
 var score int
-
 var gameOver bool
 
 // Start will be starting point of view
@@ -63,25 +62,26 @@ func initPixel() {
 		panic(err)
 	}
 
-	tile, err := loadPicture("images/tile.png")
-	if err != nil {
-		panic(err)
+	for t := internal.TileColorSkyBlue; t < internal.TileColorSentinel; t++ {
+		tile, err := loadPicture("images/tile-" + t.String() + ".png")
+		if err != nil {
+			panic(err)
+		}
+		sprites[t] = pixel.NewSprite(tile, tile.Bounds())
 	}
 
-	sprite = pixel.NewSprite(tile, tile.Bounds())
-
 	border = imdraw.New(nil)
-	border.Color = colornames.Red
+	border.Color = colornames.White
 	border.Push(pixel.V(50, windowHeight-70), pixel.V(50, windowHeight-550), pixel.V(293, windowHeight-550), pixel.V(293, windowHeight-70))
 	border.Line(3)
 
 	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
 	nextTxt = text.New(pixel.V(330, 500), basicAtlas)
-	nextTxt.Color = colornames.Red
+	nextTxt.Color = colornames.White
 	fmt.Fprintln(nextTxt, "Next")
 
 	scoreTxt = text.New(pixel.V(330, 200), basicAtlas)
-	scoreTxt.Color = colornames.Red
+	scoreTxt.Color = colornames.White
 
 	gameOverBox = imdraw.New(nil)
 	gameOverBox.Color = colornames.Beige
@@ -167,14 +167,14 @@ func startLoop() {
 	}
 }
 
-func drawPiece(coord internal.Coordinate) {
-	sprite.Draw(win, pixel.IM.Moved(pixel.Vec{X: float64(coord.X*24 + 62), Y: float64((19-coord.Y)*24 + 62)}))
+func drawPiece(piece internal.Piece) {
+	sprites[piece.Color].Draw(win, pixel.IM.Moved(pixel.Vec{X: float64(piece.Coord.X*24 + 62), Y: float64((19-piece.Coord.Y)*24 + 62)}))
 }
 
 func drawTest() {
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 20; j++ {
-			drawPiece(internal.Coordinate{X: i, Y: j})
+			drawPiece(internal.Piece{Coord: internal.Coordinate{X: i, Y: j}, Color: internal.TileColor((i*10 + j) % int(internal.TileColorSentinel))})
 		}
 	}
 }
@@ -194,29 +194,27 @@ func loadPicture(path string) (pixel.Picture, error) {
 
 // Draw the active piece to the window
 func drawActivePiece() {
-	pieces := model.GetActivePieceCoords()
-	drawCoords(pieces)
+	pieces := model.GetActivePieceInfo()
+	for _, piece := range pieces {
+		drawPiece(piece)
+	}
 }
 
 // Draw the next piece to the window
 func drawNextPiece() {
-	pieces := model.GetNextPieceCoords()
-	for _, coord := range pieces {
-		coord.X += 12
-		coord.Y += 2
-		drawPiece(coord)
+	pieces := model.GetNextPiece()
+	for _, piece := range pieces {
+		piece.Coord.X += 12
+		piece.Coord.Y += 2
+		drawPiece(piece)
 	}
 }
 
 // Draw the board, i.e. non active pieces on the board
 func drawBoard() {
 	pieces := model.GetBoardPieces()
-	drawCoords(pieces)
-}
-
-func drawCoords(pieces []internal.Coordinate) {
-	for _, coord := range pieces {
-		drawPiece(coord)
+	for _, piece := range pieces {
+		drawPiece(piece)
 	}
 }
 

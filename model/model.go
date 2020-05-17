@@ -3,11 +3,8 @@ package model
 import (
 	"erdinc/tetris/internal"
 	"fmt"
-	"image/color"
 	"math/rand"
 	"time"
-
-	"golang.org/x/image/colornames"
 )
 
 const (
@@ -63,7 +60,7 @@ var shapeZ internal.Shape = internal.Shape{
 	{{1, 0}, {1, 1}, {0, 1}, {0, 2}}}
 
 var allShapes = []internal.Shape{shapeI, shapeReverseL, shapeL, shapeSq, shapeS, shapeT, shapeZ}
-var allColors = []color.RGBA{colornames.Skyblue, colornames.Darkblue, colornames.Orange, colornames.Yellow, colornames.Green, colornames.Purple, colornames.Red}
+var allColors = []internal.TileColor{internal.TileColorSkyBlue, internal.TileColorDarkBlue, internal.TileColorOrange, internal.TileColorYellow, internal.TileColorGreen, internal.TileColorPurple, internal.TileColorRed}
 
 var activePiece, nextPiece *internal.ActivePiece
 
@@ -117,7 +114,7 @@ func NewActivePiece() bool {
 	activePiece = nextPiece
 	nextPiece = constructPiece(r)
 
-	if !isFit(GetActivePieceCoords()) {
+	if !isFit(GetActivePieceInfo()) {
 		return false
 	}
 	return true
@@ -136,29 +133,39 @@ func PrintActivePiece() {
 	fmt.Printf("Active Piece:%+v\n", activePiece)
 }
 
-// GetNextPieceCoords will return slice of coordinates of the next piece
-func GetNextPieceCoords() []internal.Coordinate {
-	return nextPiece.Shape[0]
+// GetNextPiece  will return slice of pieces of the next piece
+func GetNextPiece() []internal.Piece {
+	return piecesFromCoords(nextPiece.Shape[0], nextPiece.Color)
 }
 
-// GetActivePieceCoords will return slice of coordinates of the active piece
-func GetActivePieceCoords() []internal.Coordinate {
+// GetActivePieceInfo will return slice of "Piece" info for the active pieces
+func GetActivePieceInfo() []internal.Piece {
 	return coordsOffsetBy(activePieceCoords(), activePiece.CurrentCoord)
 }
 
-// get the current shape, i.e. slice of the coordinates, of the piece. Shape changes as it rotates
-func activePieceCoords() []internal.Coordinate {
-	return activePiece.Shape[activePiece.CurrentOrientation]
+// get the current shape, i.e. slice of the coordinates, of the active piece. Shape changes as it rotates
+func activePieceCoords() []internal.Piece {
+	return piecesFromCoords(activePiece.Shape[activePiece.CurrentOrientation], activePiece.Color)
+
+}
+
+// Helper function, gets a slice of coordinates and a color, returns a slice of pieces
+func piecesFromCoords(coords []internal.Coordinate, color internal.TileColor) []internal.Piece {
+	var pieces []internal.Piece
+	for _, coord := range coords {
+		pieces = append(pieces, internal.Piece{Coord: coord, Color: color})
+	}
+	return pieces
 }
 
 // Returns slice of coordinates of the active piece rotated. For simulation
-func getRotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
+func getRotatedActivePieceCoords(rotateBy int) []internal.Piece {
 	return coordsOffsetBy(rotatedActivePieceCoords(rotateBy), activePiece.CurrentCoord)
 }
 
 // get the rotated shape, i.e. slice of the coordinates, of the piece. Shape changes as it rotates. For simulation
-func rotatedActivePieceCoords(rotateBy int) []internal.Coordinate {
-	return activePiece.Shape[(activePiece.CurrentOrientation+rotateBy+len(activePiece.Shape))%len(activePiece.Shape)]
+func rotatedActivePieceCoords(rotateBy int) []internal.Piece {
+	return piecesFromCoords(activePiece.Shape[(activePiece.CurrentOrientation+rotateBy+len(activePiece.Shape))%len(activePiece.Shape)], activePiece.Color)
 }
 
 // RotateActivePiece rotates the active piece. -1 is left, 1 is right
@@ -166,34 +173,34 @@ func RotateActivePiece(rotateBy int) {
 	activePiece.CurrentOrientation = (activePiece.CurrentOrientation + rotateBy + len(activePiece.Shape)) % len(activePiece.Shape)
 }
 
-// Add offset to the given slice of coordinates, to each element in the slice
-func coordsOffsetBy(coords []internal.Coordinate, delta internal.Coordinate) []internal.Coordinate {
-	newCoords := make([]internal.Coordinate, len(coords))
-	for i := 0; i < len(coords); i++ {
-		newCoords[i] = coordOffsetBy(coords[i], delta)
+// Add offset to the given slice of pieces, to each element in the slice
+func coordsOffsetBy(pieces []internal.Piece, delta internal.Coordinate) []internal.Piece {
+	newCoords := make([]internal.Piece, len(pieces))
+	for i := 0; i < len(pieces); i++ {
+		newCoords[i] = coordOffsetBy(pieces[i], delta)
 	}
 	return newCoords
 }
 
-// Add offset to the given coordinate
-func coordOffsetBy(coord internal.Coordinate, delta internal.Coordinate) internal.Coordinate {
-	return internal.Coordinate{X: coord.X + delta.X, Y: coord.Y + delta.Y}
+// Add offset to the given piece. Don't change the color
+func coordOffsetBy(piece internal.Piece, delta internal.Coordinate) internal.Piece {
+	return internal.Piece{Coord: internal.Coordinate{X: piece.Coord.X + delta.X, Y: piece.Coord.Y + delta.Y}, Color: piece.Color}
 }
 
 // CanDrop return true if the current active piece can be dropped by one
 func CanDrop() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: 0, Y: 1})
-	return isFit(newCoords)
+	newPieces := coordsOffsetBy(GetActivePieceInfo(), internal.Coordinate{X: 0, Y: 1})
+	return isFit(newPieces)
 }
 
-// Returns true if all of newCoords are in boundary and empty
-func isFit(newCoords []internal.Coordinate) bool {
-	for _, coord := range newCoords {
-		if coord.X < 0 || coord.X >= tetrisWidth || coord.Y < 0 || coord.Y >= tetrisHeight {
+// Returns true if all of the pieces are in boundary and empty
+func isFit(pieces []internal.Piece) bool {
+	for _, piece := range pieces {
+		if piece.Coord.X < 0 || piece.Coord.X >= tetrisWidth || piece.Coord.Y < 0 || piece.Coord.Y >= tetrisHeight {
 			return false
 		}
 
-		if board[coord.Y][coord.X].Occupied {
+		if board[piece.Coord.Y][piece.Coord.X].Occupied {
 			return false
 		}
 	}
@@ -208,7 +215,7 @@ func Drop() {
 
 // CanMoveLeft return true if the current active piece can be moved to tne left by one
 func CanMoveLeft() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: -1, Y: 0})
+	newCoords := coordsOffsetBy(GetActivePieceInfo(), internal.Coordinate{X: -1, Y: 0})
 	return isFit(newCoords)
 }
 
@@ -219,7 +226,7 @@ func MoveLeft() {
 
 // CanMoveRight return true if the current active piece can be moved to the right by one
 func CanMoveRight() bool {
-	newCoords := coordsOffsetBy(GetActivePieceCoords(), internal.Coordinate{X: 1, Y: 0})
+	newCoords := coordsOffsetBy(GetActivePieceInfo(), internal.Coordinate{X: 1, Y: 0})
 	return isFit(newCoords)
 }
 
@@ -252,20 +259,21 @@ func RotateRight() {
 
 // AddActivePieceToBoard adds the active piece to the board
 func AddActivePieceToBoard() {
-	coords := GetActivePieceCoords()
-	for _, coord := range coords {
-		board[coord.Y][coord.X].Occupied = true
-		board[coord.Y][coord.X].Color = activePiece.Color
+	pieces := GetActivePieceInfo()
+	for _, piece := range pieces {
+		board[piece.Coord.Y][piece.Coord.X].Occupied = true
+		board[piece.Coord.Y][piece.Coord.X].Color = activePiece.Color
 	}
 }
 
 // GetBoardPieces returns the slice of all pieces on the board
-func GetBoardPieces() []internal.Coordinate {
-	var pieces []internal.Coordinate
+func GetBoardPieces() []internal.Piece {
+	var pieces []internal.Piece
 	for row := 0; row < tetrisHeight; row++ {
 		for col := 0; col < tetrisWidth; col++ {
 			if board[row][col].Occupied {
-				pieces = append(pieces, internal.Coordinate{X: col, Y: row})
+				pieces = append(pieces,
+					internal.Piece{Coord: internal.Coordinate{X: col, Y: row}, Color: board[row][col].Color})
 			}
 		}
 	}
@@ -278,10 +286,10 @@ func GetCompletedRows() []int {
 	var completed []int
 
 	// Only check active piece
-	coords := GetActivePieceCoords()
-	for _, coord := range coords {
-		if isRowFull(coord.Y) {
-			completed = addToSorted(completed, coord.Y)
+	pieces := GetActivePieceInfo()
+	for _, piece := range pieces {
+		if isRowFull(piece.Coord.Y) {
+			completed = addToSorted(completed, piece.Coord.Y)
 		}
 	}
 
